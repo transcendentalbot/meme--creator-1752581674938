@@ -20,7 +20,8 @@ export const MemePreview: React.FC<MemePreviewProps> = ({
     const canvas = new fabric.Canvas(canvasRef.current);
     fabric.Image.fromURL(URL.createObjectURL(image)).then((img) => {
       canvas.setDimensions({ width: img.width || 800, height: img.height || 600 });
-      canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+      canvas.backgroundImage = img;
+      canvas.renderAll();
 
       const topTextObj = new fabric.Text(topText, {
         fontFamily: 'Impact',
