@@ -1,6 +1,6 @@
 // /components/meme-preview.tsx
 import React from 'react';
-import { fabric } from 'fabric';
+import * as fabric from 'fabric';
 
 interface MemePreviewProps {
   image: File;
