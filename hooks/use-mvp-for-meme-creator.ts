@@ -48,5 +48,5 @@ export const MemePreview: React.FC<MemePreviewProps> = ({
     });
   }, [image, topText, bottomText]);
 
-  return <canvas ref={canvasRef} />;
+  return React.createElement('canvas', { ref: canvasRef });
 };
