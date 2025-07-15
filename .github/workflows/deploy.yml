@@ -32,7 +32,7 @@ jobs:
 
   setup-database:
     runs-on: ubuntu-latest
-    if: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
+    if: secrets.AWS_ACCESS_KEY_ID != ''
     steps:
       - uses: actions/checkout@v4
       
