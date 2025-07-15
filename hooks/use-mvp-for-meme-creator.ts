@@ -16,6 +16,7 @@ export const MemePreview: React.FC<MemePreviewProps> = ({
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
   React.useEffect(() => {
+    if (!canvasRef.current) return;
     const canvas = new fabric.Canvas(canvasRef.current);
     fabric.Image.fromURL(URL.createObjectURL(image), (img) => {
       canvas.setDimensions({ width: img.width, height: img.height });
