@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       deployment-url: ${{ steps.vercel.outputs.preview-url }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
       
@@ -19,10 +23,18 @@ jobs:
           
       - run: npm install
       
+      - name: Create .env file
+        run: |
+          echo "DATABASE_TABLE_NAME=${{ secrets.DATABASE_TABLE_NAME || 'meme-creator-data' }}" >> .env
+          echo "AWS_REGION=${{ secrets.AWS_REGION || 'us-east-1' }}" >> .env
+          echo "AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}" >> .env
+          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> .env
+      
       - run: npm run build
       
       - name: Deploy to Vercel
         id: vercel
+        if: env.VERCEL_TOKEN != ''
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -33,19 +45,26 @@ jobs:
   setup-database:
     runs-on: ubuntu-latest
     continue-on-error: true
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.DEPLOYED_AWS_ACCESS_KEY_ID || secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DEPLOYED_AWS_SECRET_ACCESS_KEY || secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
+      DATABASE_TABLE_NAME: ${{ secrets.DATABASE_TABLE_NAME || 'meme-creator-data' }}
     steps:
       - uses: actions/checkout@v4
       
       - name: Configure AWS credentials
+        if: env.AWS_ACCESS_KEY_ID != ''
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
       
       - name: Create DynamoDB table if not exists
+        if: env.AWS_ACCESS_KEY_ID != ''
         run: |
-          TABLE_NAME="${{ secrets.DATABASE_TABLE_NAME }}"
+          TABLE_NAME="${{ env.DATABASE_TABLE_NAME }}"
           
           # Check if table exists
           if aws dynamodb describe-table --table-name "$TABLE_NAME" 2>/dev/null; then
